@@ -39,7 +39,7 @@ function notify_duty_officer(string $phone, string $message): bool {
     return $result !== false && $httpCode >= 200 && $httpCode < 300;
 }
 
-function notify_telegram(string $message): bool {
+function notify_telegram(string $message): array {
     $botToken = trim((string)getenv('TELEGRAM_BOT_TOKEN'));
     $chatId = trim((string)getenv('TELEGRAM_CHAT_ID'));
     $telegramConfig = __DIR__ . '/../config/telegram.php';
@@ -48,7 +48,7 @@ function notify_telegram(string $message): bool {
         $botToken = trim((string)($config['bot_token'] ?? $botToken));
         $chatId = trim((string)($config['chat_id'] ?? $chatId));
     }
-    if ($botToken === '' || $chatId === '') return false;
+    if ($botToken === '' || $chatId === '') return ['sent' => false, 'reason' => 'telegram_config_missing'];
 
     $endpoint = "https://api.telegram.org/bot{$botToken}/sendMessage";
     $postData = http_build_query([
@@ -69,7 +69,9 @@ function notify_telegram(string $message): bool {
         ]);
         $result = @file_get_contents($endpoint, false, $context);
         $response = is_string($result) ? json_decode($result, true) : null;
-        return is_array($response) && !empty($response['ok']);
+        return is_array($response) && !empty($response['ok'])
+            ? ['sent' => true, 'reason' => 'sent']
+            : ['sent' => false, 'reason' => 'telegram_request_failed'];
     }
 
     $ch = curl_init($endpoint);
@@ -82,7 +84,9 @@ function notify_telegram(string $message): bool {
     $result = curl_exec($ch);
     $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    return $result !== false && $httpCode >= 200 && $httpCode < 300;
+    return $result !== false && $httpCode >= 200 && $httpCode < 300
+        ? ['sent' => true, 'reason' => 'sent']
+        : ['sent' => false, 'reason' => 'telegram_request_failed'];
 }
 
 try {
@@ -139,7 +143,8 @@ try {
             . "Expected return: " . ($b['expected_return'] ?? 'N/A') . "\n"
             . "Time: " . date('Y-m-d H:i:s');
         $notificationSent = notify_duty_officer((string)($b['authorized_officer_phone'] ?? ''), $message);
-        $telegramSent = notify_telegram($message);
+        $telegramResult = notify_telegram($message);
+        $telegramSent = $telegramResult['sent'];
 
         respond([
             'success' => true,
@@ -147,7 +152,8 @@ try {
             'id' => $mid,
             'vehicle' => $vehicle,
             'duty_officer_notified' => $notificationSent || $telegramSent,
-            'telegram_notified' => $telegramSent
+            'telegram_notified' => $telegramSent,
+            'telegram_status' => $telegramResult['reason']
         ], 201);
     }
 
