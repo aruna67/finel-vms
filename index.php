@@ -5298,12 +5298,13 @@
                         if (updatedVehicle) Object.assign(updatedVehicle, res.vehicle);
                     }
                     document.getElementById('signatureDisplay').innerHTML = `<i class="fas fa-check"></i> Authorized by ${payload.authorized_by}`;
+                    const telegramStatus = res.telegram_status || 'not_returned';
                     showNotification(
                         res.telegram_notified
-                            ? `Vehicle checked out and Telegram message sent.`
+                            ? `Vehicle checked out and Telegram message sent. (${telegramStatus})`
                             : res.duty_officer_notified
                                 ? `Vehicle checked out and duty officer notified.`
-                            : `Vehicle checked out. Configure Telegram Bot to send automatic messages.`,
+                            : `Vehicle checked out. Telegram status: ${telegramStatus}.`,
                         res.duty_officer_notified ? 'success' : 'warning'
                     );
                     setTimeout(() => {
