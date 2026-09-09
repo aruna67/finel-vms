@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+config/telegram.php
 *.log
 
 # User-uploaded/generated media

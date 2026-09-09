@@ -42,6 +42,12 @@ function notify_duty_officer(string $phone, string $message): bool {
 function notify_telegram(string $message): bool {
     $botToken = trim((string)getenv('TELEGRAM_BOT_TOKEN'));
     $chatId = trim((string)getenv('TELEGRAM_CHAT_ID'));
+    $telegramConfig = __DIR__ . '/../config/telegram.php';
+    if (($botToken === '' || $chatId === '') && is_file($telegramConfig)) {
+        $config = require $telegramConfig;
+        $botToken = trim((string)($config['bot_token'] ?? $botToken));
+        $chatId = trim((string)($config['chat_id'] ?? $chatId));
+    }
     if ($botToken === '' || $chatId === '' || !function_exists('curl_init')) return false;
 
     $ch = curl_init("https://api.telegram.org/bot{$botToken}/sendMessage");

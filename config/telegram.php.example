@@ -1,0 +1,6 @@
+<?php
+// Copy this file to telegram.php on the hosting server and add real values.
+return [
+    'bot_token' => '',
+    'chat_id' => ''
+];
