@@ -22,7 +22,7 @@ function notify_duty_officer(string $phone, string $message): bool {
     $from = getenv('TWILIO_FROM_NUMBER');
     if ($phone === '' || !$sid || !$token || !$from || !function_exists('curl_init')) return false;
 
-    $to = str_starts_with(strtolower($from), 'whatsapp:')
+    $to = substr(strtolower($from), 0, 9) === 'whatsapp:'
         ? 'whatsapp:+' . $phone
         : '+' . $phone;
     $ch = curl_init("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json");
@@ -48,16 +48,34 @@ function notify_telegram(string $message): bool {
         $botToken = trim((string)($config['bot_token'] ?? $botToken));
         $chatId = trim((string)($config['chat_id'] ?? $chatId));
     }
-    if ($botToken === '' || $chatId === '' || !function_exists('curl_init')) return false;
+    if ($botToken === '' || $chatId === '') return false;
 
-    $ch = curl_init("https://api.telegram.org/bot{$botToken}/sendMessage");
+    $endpoint = "https://api.telegram.org/bot{$botToken}/sendMessage";
+    $postData = http_build_query([
+        'chat_id' => $chatId,
+        'text' => $message,
+        'disable_web_page_preview' => 'true'
+    ]);
+
+    if (!function_exists('curl_init')) {
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'content' => $postData,
+                'timeout' => 10,
+                'ignore_errors' => true
+            ]
+        ]);
+        $result = @file_get_contents($endpoint, false, $context);
+        $response = is_string($result) ? json_decode($result, true) : null;
+        return is_array($response) && !empty($response['ok']);
+    }
+
+    $ch = curl_init($endpoint);
     curl_setopt_array($ch, [
         CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => http_build_query([
-            'chat_id' => $chatId,
-            'text' => $message,
-            'disable_web_page_preview' => 'true'
-        ]),
+        CURLOPT_POSTFIELDS => $postData,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 10
     ]);
