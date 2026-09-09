@@ -1,0 +1,15 @@
+# Local secrets and runtime files
+.env
+.env.*
+!.env.example
+*.log
+
+# User-uploaded/generated media
+uploads/vehicles/
+social_network/uploads/
+
+# Local IDE and OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

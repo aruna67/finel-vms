@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Army VMS - Presentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/league.min.css">
+    <style>
+        .reveal h1, .reveal h2, .reveal h3 {
+            text-transform: none;
+        }
+        .highlight-text { color: #f59e0b; }
+        .green-text { color: #10b981; }
+        .info-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            margin-top: 20px;
+        }
+        .flex-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .flex-text {
+            width: 45%;
+            text-align: left;
+            font-size: 0.8em;
+        }
+        .flex-img {
+            width: 55%;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            background: #1e293b;
+            position: relative;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #475569;
+        }
+        .flex-img img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 0 !important;
+            display: block;
+        }
+        .placeholder-text {
+            position: absolute;
+            color: #94a3b8;
+            font-size: 0.6em;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- Slide 1 -->
+            <section data-transition="zoom" data-background-color="#1e293b">
+                <h2>Sri Lanka Army</h2>
+                <h1 class="highlight-text">Vehicle Management System</h1>
+                <h3>(Army VMS)</h3>
+                <p style="color: #64748b;">Enterprise Fleet Management Solution</p>
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/0/07/Sri_Lanka_Army_emblem.svg/1200px-Sri_Lanka_Army_emblem.svg.png" style="height: 150px; background: transparent; box-shadow: none;" alt="Logo">
+            </section>
+
+            <!-- Slide 2 -->
+            <section data-transition="slide" data-background-color="#0f172a">
+                <h2>System Overview</h2>
+                <p>A secure, web-based platform engineered to modernize military logistics and fleet administration.</p>
+                <div class="info-box">
+                    <ul style="color: white; line-height: 1.5;">
+                        <li><b>Centralized Dashboards:</b> Live tracking of vehicles and personnel.</li>
+                        <li><b>Data-Driven:</b> MySQL/MariaDB backed architecture for reliability.</li>
+                        <li><b>Multi-Tenant Architecture:</b> Isolated databases via logical Unit ID separation.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Slide 3 -->
+            <section data-transition="convex">
+                <h2>Role-Based Access Control</h2>
+                <p style="font-size: 0.8em; margin-bottom: 30px;">Strictly implemented system boundaries corresponding with military hierarchy.</p>
+                <ul style="list-style: none; margin: 0; padding: 0;">
+                    <li class="fragment" style="margin-bottom: 20px;">👑 <b class="highlight-text">Super Admin (HQ)</b> <br> <span style="font-size: 0.7em;">Full access, multi-unit broad analytics across all bases.</span></li>
+                    <li class="fragment" style="margin-bottom: 20px;">🛡️ <b class="green-text">Unit Admin</b> <br> <span style="font-size: 0.7em;">Full oversight capabilities solely within their specific unit.</span></li>
+                    <li class="fragment">💂 <b>Unit Officer</b> <br> <span style="font-size: 0.7em;">Dispatch authorizations, routine operations, daily reporting.</span></li>
+                </ul>
+            </section>
+
+            <!-- Slide 4: Dashboard UI -->
+            <section data-transition="slide">
+                <h2>System Dashboard</h2>
+                <div class="flex-container">
+                    <div class="flex-text">
+                        <h3 class="green-text">Dashboard & Tracking</h3>
+                        <ul>
+                            <li>Real-time Fleet Stats</li>
+                            <li>Gauges & Activity Charts</li>
+                            <li>Vehicle Check-Out/Check-In</li>
+                            <li>Emergency Overdue Alerts</li>
+                        </ul>
+                    </div>
+                    <div class="flex-img">
+                        <span class="placeholder-text"><br><b style='color:#f59e0b'></b><br>.</span>
+                        <img src="ui_dashboard.png" onerror="this.style.display='none'" alt="Dashboard UI">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Inventory UI -->
+            <section data-transition="slide">
+                <h2>Vehicle & Inventory</h2>
+                <div class="flex-container">
+                    <div class="flex-text">
+                        <h3 class="highlight-text">Fleet Management</h3>
+                        <ul>
+                            <li>Comprehensive Vehicle Register</li>
+                            <li>Intelligent Driver Database</li>
+                            <li>License Expiry Tracking</li>
+                            <li>Service Logs & Fuel Logs</li>
+                        </ul>
+                    </div>
+                    <div class="flex-img">
+                        <span class="placeholder-text"><br><b style='color:#f59e0b'></b><br></span>
+                        <img src="ui_inventory.png" onerror="this.style.display='none'" alt="Inventory UI">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: GPS Tracking UI -->
+            <section data-transition="zoom" data-background-color="#334155">
+                <h2>Advanced Integrations</h2>
+                <div class="flex-container">
+                    <div class="flex-text">
+                        <h3 class="green-text">Live Operations</h3>
+                        <ul>
+                            <li>📍 <b>Live GPS Tracking:</b> Live Maps overlays via coordinates.</li>
+                            <li>💬 <b>WhatsApp Integrations:</b> Trigger and dispatch WhatsApp alerts.</li>
+                            <li>📊 <b>PDF Reports:</b> Auto generated analytical reports.</li>
+                        </ul>
+                    </div>
+                    <div class="flex-img">
+                         <span class="placeholder-text">Please save your Live Map screenshot as <br><b style='color:#f59e0b'>ui_map.png</b><br>in the army_vms folder. Image will appear here.</span>
+                        <img src="ui_map.png" onerror="this.style.display='none'" alt="GPS Map UI">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 7 -->
+            <section data-transition="slide" data-background-color="#111827">
+                <h2>Technology Stack</h2>
+                <ul style="font-size: 0.85em;">
+                    <li><b>Frontend Layout:</b> HTML5, CSS3, Vanilla ES6 JavaScript</li>
+                    <li><b>Libraries implemented:</b> Chart.js (Analytics), Leaflet Maps (GPS Visualization)</li>
+                    <li><b>Backend Interface:</b> PHP 8 REST API Server</li>
+                    <li><b>Database Structure:</b> Relational MySQL / MariaDB Database</li>
+                </ul>
+                <div style="background: rgba(16, 185, 129, 0.2); padding: 5px; border-radius: 5px; margin-top:20px;">
+                    <p style="font-size: 0.6em; margin: 0; color: #a7f3d0;">Fully SaaS & Multi-Tenant architecture customized exclusively for the IT Datacenter.</p>
+                </div>
+            </section>
+
+            <!-- Slide 8 -->
+            <section data-transition="fade">
+                <h1 class="green-text">Thank You</h1>
+                <p>Designed and Built natively for military use.</p>
+                <br>
+                <p style="font-size: 0.5em; color: grey;">Ready for initial deployment Phase I</p>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            center: true,
+            hash: true,
+            transition: 'slide'
+        });
+    </script>
+</body>
+</html>
