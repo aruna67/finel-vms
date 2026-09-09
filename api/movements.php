@@ -58,20 +58,7 @@ function notify_telegram(string $message): array {
     ]);
 
     if (!function_exists('curl_init')) {
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
-                'content' => $postData,
-                'timeout' => 10,
-                'ignore_errors' => true
-            ]
-        ]);
-        $result = @file_get_contents($endpoint, false, $context);
-        $response = is_string($result) ? json_decode($result, true) : null;
-        return is_array($response) && !empty($response['ok'])
-            ? ['sent' => true, 'reason' => 'sent']
-            : ['sent' => false, 'reason' => 'telegram_request_failed'];
+        return telegram_stream_request($endpoint, $postData);
     }
 
     $ch = curl_init($endpoint);
@@ -79,14 +66,46 @@ function notify_telegram(string $message): array {
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => $postData,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 10
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2
     ]);
     $result = curl_exec($ch);
     $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    return $result !== false && $httpCode >= 200 && $httpCode < 300
-        ? ['sent' => true, 'reason' => 'sent']
-        : ['sent' => false, 'reason' => 'telegram_request_failed'];
+
+    if ($result !== false && $httpCode >= 200 && $httpCode < 300) {
+        $response = json_decode($result, true);
+        if (is_array($response) && !empty($response['ok'])) {
+            return ['sent' => true, 'reason' => 'sent'];
+        }
+    }
+
+    // Some shared hosts have cURL enabled but block its TLS connection.
+    return telegram_stream_request($endpoint, $postData);
+}
+
+function telegram_stream_request(string $endpoint, string $postData): array {
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $postData,
+            'timeout' => 10,
+            'ignore_errors' => true
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true
+        ]
+    ]);
+    $result = @file_get_contents($endpoint, false, $context);
+    $response = is_string($result) ? json_decode($result, true) : null;
+    if (is_array($response) && !empty($response['ok'])) {
+        return ['sent' => true, 'reason' => 'sent'];
+    }
+
+    return ['sent' => false, 'reason' => 'telegram_request_failed'];
 }
 
 try {
