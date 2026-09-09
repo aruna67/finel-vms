@@ -5299,9 +5299,11 @@
                     }
                     document.getElementById('signatureDisplay').innerHTML = `<i class="fas fa-check"></i> Authorized by ${payload.authorized_by}`;
                     showNotification(
-                        res.duty_officer_notified
-                            ? `Vehicle checked out and duty officer notified.`
-                            : `Vehicle checked out. Configure Twilio to send the duty officer message.`,
+                        res.telegram_notified
+                            ? `Vehicle checked out and Telegram message sent.`
+                            : res.duty_officer_notified
+                                ? `Vehicle checked out and duty officer notified.`
+                            : `Vehicle checked out. Configure Telegram Bot to send automatic messages.`,
                         res.duty_officer_notified ? 'success' : 'warning'
                     );
                     setTimeout(() => {

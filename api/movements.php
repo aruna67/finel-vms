@@ -39,6 +39,28 @@ function notify_duty_officer(string $phone, string $message): bool {
     return $result !== false && $httpCode >= 200 && $httpCode < 300;
 }
 
+function notify_telegram(string $message): bool {
+    $botToken = trim((string)getenv('TELEGRAM_BOT_TOKEN'));
+    $chatId = trim((string)getenv('TELEGRAM_CHAT_ID'));
+    if ($botToken === '' || $chatId === '' || !function_exists('curl_init')) return false;
+
+    $ch = curl_init("https://api.telegram.org/bot{$botToken}/sendMessage");
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => http_build_query([
+            'chat_id' => $chatId,
+            'text' => $message,
+            'disable_web_page_preview' => 'true'
+        ]),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10
+    ]);
+    $result = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return $result !== false && $httpCode >= 200 && $httpCode < 300;
+}
+
 try {
     $pdo = Database::getInstance()->getPDO();
     $method = $_SERVER['REQUEST_METHOD'];
@@ -93,13 +115,15 @@ try {
             . "Expected return: " . ($b['expected_return'] ?? 'N/A') . "\n"
             . "Time: " . date('Y-m-d H:i:s');
         $notificationSent = notify_duty_officer((string)($b['authorized_officer_phone'] ?? ''), $message);
+        $telegramSent = notify_telegram($message);
 
         respond([
             'success' => true,
             'message' => 'Vehicle checked out and vehicle details updated.',
             'id' => $mid,
             'vehicle' => $vehicle,
-            'duty_officer_notified' => $notificationSent
+            'duty_officer_notified' => $notificationSent || $telegramSent,
+            'telegram_notified' => $telegramSent
         ], 201);
     }
 
