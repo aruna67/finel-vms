@@ -5293,8 +5293,17 @@
             }).then(r => r.json()).then(res => {
                 if (res.success) {
                     sendMovementNotification('CHECK OUT', payload, vehicle);
+                    if (res.vehicle) {
+                        const updatedVehicle = appState.vehicles.find(v => v.id === res.vehicle.id);
+                        if (updatedVehicle) Object.assign(updatedVehicle, res.vehicle);
+                    }
                     document.getElementById('signatureDisplay').innerHTML = `<i class="fas fa-check"></i> Authorized by ${payload.authorized_by}`;
-                    showNotification(`Vehicle checked out - Authorized by ${payload.authorized_by}`, 'success');
+                    showNotification(
+                        res.duty_officer_notified
+                            ? `Vehicle checked out and duty officer notified.`
+                            : `Vehicle checked out. Configure Twilio to send the duty officer message.`,
+                        res.duty_officer_notified ? 'success' : 'warning'
+                    );
                     setTimeout(() => {
                         document.getElementById('checkOutModal').style.display = 'none';
                         document.getElementById('checkOutForm').reset();
@@ -5318,7 +5327,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: generateId('W'), type: 'movement', message, recipient: 'admin_officer' })
             }).catch(() => {});
-            window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+            const phone = String(payload.authorized_officer_phone || '').replace(/\D/g, '');
+            window.open(phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : `https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
         }
 
         window.openCheckInModal = function (movementId) {
@@ -5889,6 +5899,7 @@
                 document.getElementById('checkOutVehicle').value = vehicle.id;
                 document.getElementById('checkOutOdometer').value = vehicle.current_odometer || 0;
                 showVehicleDetails(vehicle, 'checkOutVehicleDetails');
+                openCheckOutModal(vehicle.id);
             } else {
                 const movement = appState.movements.find(m => m.vehicle_id === vehicle.id && m.status !== 'completed');
                 if (!movement) {

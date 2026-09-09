@@ -15,6 +15,30 @@ function respond(array $data, int $code = 200): void {
     http_response_code($code); echo json_encode($data); exit;
 }
 
+function notify_duty_officer(string $phone, string $message): bool {
+    $phone = preg_replace('/\D+/', '', $phone);
+    $sid = getenv('TWILIO_ACCOUNT_SID');
+    $token = getenv('TWILIO_AUTH_TOKEN');
+    $from = getenv('TWILIO_FROM_NUMBER');
+    if ($phone === '' || !$sid || !$token || !$from || !function_exists('curl_init')) return false;
+
+    $to = str_starts_with(strtolower($from), 'whatsapp:')
+        ? 'whatsapp:+' . $phone
+        : '+' . $phone;
+    $ch = curl_init("https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json");
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => http_build_query(['To' => $to, 'From' => $from, 'Body' => $message]),
+        CURLOPT_USERPWD => "{$sid}:{$token}",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 10
+    ]);
+    $result = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return $result !== false && $httpCode >= 200 && $httpCode < 300;
+}
+
 try {
     $pdo = Database::getInstance()->getPDO();
     $method = $_SERVER['REQUEST_METHOD'];
@@ -50,11 +74,33 @@ try {
             ->execute([$mid,$b['vehicle_id'],$b['driver_id'],date('Y-m-d H:i:s'),$b['expected_return']??null,$b['destination'],$b['purpose'],$b['authorized_by'],$b['authorized_officer_phone']??null,'out',$b['notes']??null,(int)($b['odometer']??0),(int)($b['checkout_fuel_level']??0),unit_value($b)]);
 
         // Update vehicle odometer and status
-        $pdo->prepare("UPDATE vehicles SET in_out_status='out', current_odometer=? WHERE id=? AND (" . unit_sql() . ")")->execute([(int)($b['odometer']??0), $b['vehicle_id']]);
+        $pdo->prepare("UPDATE vehicles SET in_out_status='out', current_odometer=?, fuel_level=? WHERE id=? AND (" . unit_sql() . ")")
+            ->execute([(int)($b['odometer']??0), (int)($b['checkout_fuel_level']??0), $b['vehicle_id']]);
         $pdo->prepare("UPDATE drivers SET status='on_duty' WHERE id=? AND (" . unit_sql() . ")")->execute([$b['driver_id']]);
 
         $pdo->commit();
-        respond(['success' => true, 'message' => 'Vehicle checked out.', 'id' => $mid], 201);
+
+        $vehicleDetails = $pdo->prepare("SELECT id, model, registration, in_out_status, current_odometer, fuel_level FROM vehicles WHERE id=? AND (" . unit_sql() . ")");
+        $vehicleDetails->execute([$b['vehicle_id']]);
+        $vehicle = $vehicleDetails->fetch();
+        $message = "ARMY VMS VEHICLE OUT\n"
+            . "Vehicle: {$vehicle['id']} ({$vehicle['registration']})\n"
+            . "Model: {$vehicle['model']}\n"
+            . "Driver: {$b['driver_id']}\n"
+            . "Destination: {$b['destination']}\n"
+            . "Purpose: {$b['purpose']}\n"
+            . "Authorized by: {$b['authorized_by']}\n"
+            . "Expected return: " . ($b['expected_return'] ?? 'N/A') . "\n"
+            . "Time: " . date('Y-m-d H:i:s');
+        $notificationSent = notify_duty_officer((string)($b['authorized_officer_phone'] ?? ''), $message);
+
+        respond([
+            'success' => true,
+            'message' => 'Vehicle checked out and vehicle details updated.',
+            'id' => $mid,
+            'vehicle' => $vehicle,
+            'duty_officer_notified' => $notificationSent
+        ], 201);
     }
 
     // PUT — check in
